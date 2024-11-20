@@ -19,9 +19,9 @@ stop_on_first_error = False
 test_integer_Q2    = False
 test_pointfloat_Q2 = False
 test_integer       = False
-test_pointfloat    = True
+test_pointfloat    = False
 test_exponent      = False
-test_exponentfloat = False
+test_exponentfloat = True
 test_number        = False
 
 # Le caractère de fin est \0, et non \n

@@ -291,14 +291,194 @@ def pointfloat_state_3():
     else:
         return False, None
 
+
 ############
 # Question 8 : exponent, exponentfloat et number
 
+
+#EXPONENT
+#il faut tout d'abord écrire l'automate sur une feuille de papier, 
+#puis le rendre déterministe et complet, et enfin l'implémenter
+
+    
 # La valeur du signe de l'exposant : 1 si +, -1 si -
 sign_value = 0
 
+def exponent():
+    '''
+    automate pour les exposants
+    '''
+    init_char()
+    global exp_value
+    global sign_value
+    sign_value = 1
+    exp_value = 0
+    return exponent_state_0()
 
+def exponent_state_0():
+    ch = next_char()
+    if ch == 'e' or ch == 'E':
+        return exponent_state_1()
+    else:
+        return sink_state()
 
+def exponent_state_1():
+    global sign_value
+    global exp_value
+    ch = next_char()
+    if ch == '+':
+        sign_value = 1
+        return exponent_state_2()
+    elif ch == '-':
+        sign_value = -1
+        return exponent_state_2()
+    elif digit(ch):
+        exp_value = int(ch)
+        return exponent_state_3()
+    else:
+        return sink_state()
+
+def exponent_state_2():
+    global exp_value
+    global sign_value
+    ch = next_char()
+    if digit(ch):
+        exp_value = sign_value * int(ch)
+        return exponent_state_3()
+    else:
+        return sink_state()
+
+def exponent_state_3():
+    global exp_value
+    global sign_value
+    ch = next_char()
+    if digit(ch):
+        exp_value = exp_value * 10 + sign_value * int(ch)
+        return exponent_state_3()
+    elif ch == END:
+        return True, exp_value
+    else:
+        return sink_state()
+
+def sink_state():
+    '''
+    Etat puits commun à tous les automates
+    '''
+    return False, None
+
+#EXPONENT FLOAT
+#il faut tout d'abord écrire l'automate sur une feuille de papier,
+#puis le rendre déterministe et complet, et enfin l'implémenter
+
+def exponentfloat():
+    '''
+    automate pour les nombres à virgule avec exposants
+    '''
+    init_char()
+    global int_value
+    global exp_value
+    global sign_value
+    sign_value = 1
+    int_value = 0.
+    exp_value = 0
+    return exponentfloat_state_0()
+
+def exponentfloat_state_0():
+    global int_value
+    global exp_value
+    ch = next_char()
+    if digit(ch):
+        int_value = int(ch)
+        return exponentfloat_state_1()
+    elif ch == '.':
+        exp_value = -1
+        return exponentfloat_state_2()
+    else:
+        return sink_state()
+    
+def exponentfloat_state_1():
+    global int_value
+    global exp_value
+    ch = next_char()
+    if digit(ch):
+        int_value = int_value * 10 + int(ch)
+        return exponentfloat_state_1()
+    elif ch == '.':
+        exp_value =- 1
+        return exponentfloat_state_4()
+    elif ch == 'e' or ch == 'E':
+        exp_value = 0
+        return exponentfloat_state_3()
+    else:
+        return sink_state()
+
+def exponentfloat_state_2():
+    global int_value
+    global exp_value 
+    ch = next_char()
+    if digit(ch):
+        int_value = int_value + int(ch) * 10 ** exp_value
+        exp_value -= 1
+        return exponentfloat_state_4()
+    else:
+        return sink_state()
+
+def exponentfloat_state_3():
+    global int_value
+    global exp_value
+    global sign_value
+    ch = next_char()
+    if ch == '+':
+        sign_value = 1
+        return exponentfloat_state_5()
+    elif ch == '-':
+        sign_value = -1
+        return exponentfloat_state_5()
+    elif digit(ch):
+        exp_value = int(ch)
+        return exponentfloat_state_6()
+    else:
+        return sink_state()
+
+def exponentfloat_state_4():
+    global int_value
+    global exp_value
+    ch = next_char()
+    if digit(ch):
+        int_value = int_value + int(ch) * 10 ** exp_value
+        exp_value -= 1
+        return exponentfloat_state_4()
+    elif ch == 'e' or ch == 'E':
+        exp_value = 0
+        return exponentfloat_state_3()
+    elif ch == END:
+        return True, int_value
+    else:
+        return sink_state()
+
+def exponentfloat_state_5():
+    global exp_value
+    global sign_value
+    ch = next_char()
+    if digit(ch):
+        exp_value = sign_value * int(ch)
+        return exponentfloat_state_6()
+    else:
+        return sink_state()
+
+def exponentfloat_state_6():
+    global exp_value
+    global sign_value
+    global int_value
+    ch = next_char()
+    if digit(ch):
+        exp_value = exp_value * 10 + sign_value * int(ch)
+        return exponentfloat_state_6()
+    elif ch == END:
+        return True, int_value * 10 ** exp_value
+    else:
+        return sink_state()
+    
 ########################
 #####    Projet    #####
 ########################
@@ -379,13 +559,13 @@ if __name__ == "__main__":
     print("@ Tapez une entrée:")
     try:
         #ok = integer() # changer ici pour tester un autre automate sans valeur
-        ok, val = pointfloat() # changer ici pour tester un autre automate avec valeur
+        ok, val = exponentfloat() # changer ici pour tester un autre automate avec valeur
         # ok, val = True, eval_exp() # changer ici pour tester eval_exp et eval_exp_v2
         if ok:
-            #print("Accepted!")
+            print("Accepted!")
             print("value:", val) # décommenter ici pour afficher la valeur (question 4 et +)
         else:
-            #print("Rejected!")
+            print("Rejected!")
             print("value so far:", int_value) # décommenter ici pour afficher la valeur en cas de rejet
     except Error as e:
         print("Error:", e)
