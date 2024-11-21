@@ -478,7 +478,7 @@ def exponentfloat_state_6():
         return True, int_value * 10 ** exp_value
     else:
         return sink_state()
-    
+        
 ########################
 #####    Projet    #####
 ########################
