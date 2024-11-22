@@ -478,7 +478,189 @@ def exponentfloat_state_6():
         return True, int_value * 10 ** exp_value
     else:
         return sink_state()
-        
+
+#NUMBER
+def number():
+    '''
+    automate pour tous les nombres
+    '''
+    init_char()
+    global int_value
+    global exp_value
+    global sign_value
+    sign_value = 1
+    int_value = 0.
+    exp_value = 0
+    return number_state_0()
+
+def number_state_0():
+    '''
+    q0 Number
+    '''
+    global int_value 
+    global exp_value
+    ch = next_char()
+    if nonzerodigit(ch):
+        int_value = int(ch)
+        return number_state_2()
+    elif ch == '0':
+        int_value = 0
+        return number_state_1()
+    elif ch == '.':
+        exp_value = -1
+        return number_state_3()
+    else: 
+        return sink_state()
+
+def number_state_1():
+    '''
+    q1 Number
+    '''
+    global int_value
+    global exp_value
+    global sign_value
+    ch = next_char()
+    if nonzerodigit(ch):
+        int_value = int(ch)
+        return number_state_5()
+    elif ch == '0':
+        return number_state_1()
+    elif ch == '.':
+        exp_value = -1
+        return number_state_4()
+    elif ch == 'E' or ch == 'e':
+        exp_value = 0
+        sign_value = 1
+        return number_state_6()
+    elif ch == END:
+        return True, int_value 
+    else: 
+        return sink_state()
+
+def number_state_2(): 
+    '''
+    q2 Number
+    '''
+    global int_value 
+    global exp_value
+    global sign_value
+    ch = next_char()
+    if digit(ch):
+        int_value = int_value * 10 +int(ch)
+        return number_state_2()
+    elif ch == '.':
+        exp_value = -1
+        return number_state_4()
+    elif ch == 'E' or ch == 'e':
+        exp_value = 0
+        sign_value = 1
+        return number_state_6()
+    elif ch == END:
+        return True, int_value 
+    else:
+        return sink_state()
+
+def number_state_3():
+    '''
+    q3 Number
+    '''
+    global int_value
+    global exp_value
+    ch = next_char()
+    if digit(ch):
+        int_value = int_value + int(ch) * 10 ** exp_value
+        exp_value -= 1
+        return number_state_4()
+    else: 
+        return sink_state()
+
+def number_state_4():
+    '''
+    q4 Number
+    '''
+    global int_value
+    global exp_value
+    global sign_value
+    ch = next_char()
+    if digit(ch):
+        int_value = int_value + int(ch) * 10 ** exp_value
+        exp_value -= 1
+        return number_state_4()
+    elif ch == 'E' or ch=='e':
+        exp_value = 0
+        sign_value = 1
+        return number_state_6()
+    elif ch == END:
+        return True, int_value
+    else: 
+        return sink_state
+
+def number_state_5():
+    '''
+    q5 Number
+    '''
+    global int_value
+    global exp_value
+    ch = next_char()
+    if digit(ch):
+        int_value = int_value * 10 + int(ch)
+        return number_state_5()
+    elif ch == '.':
+        exp_value = -1
+        return number_state_4()
+    elif ch == 'E' or ch == "e":
+        exp_value = 0
+        return number_state_6()
+    else:
+        return sink_state()
+
+def number_state_6():
+    '''
+    q6 Number
+    '''
+    global exp_value
+    global sign_value
+    ch = next_char()
+    if digit(ch):
+        exp_value = int(ch)
+        return number_state_8()
+    elif ch == '+':
+        sign_value = 1
+        return number_state_7()
+    elif ch == '-':
+        sign_value = -1
+        return number_state_7()
+    else:
+        return sink_state()
+
+def number_state_7():
+    '''
+    q7 Number
+    '''
+    global exp_value
+    ch = next_char()
+    if digit(ch):
+        exp_value = sign_value * int(ch)
+        return number_state_8()
+    else:
+        return sink_state()
+
+def number_state_8():
+    '''
+    q8 Number
+    '''
+    global exp_value
+    global int_value
+    global sign_value
+    ch = next_char()
+    if digit(ch):
+        exp_value = exp_value * 10 + sign_value * int(ch)
+        return number_state_8()
+    elif ch == END:
+        return True, int_value * 10 ** exp_value
+    else:
+        return sink_state()
+
 ########################
 #####    Projet    #####
 ########################
@@ -487,17 +669,47 @@ def exponentfloat_state_6():
 V = set(('.', 'e', 'E', '+', '-', '*', '/', '(', ')', ' ')
         + tuple(str(i) for i in range(10)))
 
+############
+# Question 9 : 
+#Langage hors contexte car les règles sont de la forme A -> aBc, avec A et B des 
+#symboles non terminaux et a, c des symboles terminaux
+# Langage régulier ? A DEMONTRER
+
+
 
 ############
 # Question 10 : eval_exp
 
 def eval_exp():
-    print("@ATTENTION: eval_exp à finir !") # LIGNE A SUPPRIMER
+    '''
+    évaluer une expression en notation préfixe
+    '''
     ch = next_char()
-    if ch == '+':
+
+    if number(ch)[0]:
+        return number(ch)[1]
+    
+    elif ch == '-': 
+        n1 = eval_exp()
+        n2 = eval_exp()
+        return n1 - n2
+    
+    elif ch == '*':
+        n1 = eval_exp()
+        n2 = eval_exp()
+        return n1 * n2
+    
+    elif ch == '/':
+        n1 = eval_exp()
+        n2 = eval_exp()
+        return n1 / n2
+    
+    elif ch == '+':
         n1 = eval_exp()
         n2 = eval_exp()
         return n1 + n2
+    
+    else: return False
 
 
 ############
@@ -559,7 +771,7 @@ if __name__ == "__main__":
     print("@ Tapez une entrée:")
     try:
         #ok = integer() # changer ici pour tester un autre automate sans valeur
-        ok, val = exponentfloat() # changer ici pour tester un autre automate avec valeur
+        ok, val = number() # changer ici pour tester un autre automate avec valeur
         # ok, val = True, eval_exp() # changer ici pour tester eval_exp et eval_exp_v2
         if ok:
             print("Accepted!")
