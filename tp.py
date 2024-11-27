@@ -532,7 +532,7 @@ def number_state_1():
         exp_value = 0
         sign_value = 1
         return number_state_6()
-    elif ch == END:
+    elif ch == END or ch == ' ':
         return True, int_value 
     else: 
         return sink_state()
@@ -555,7 +555,7 @@ def number_state_2():
         exp_value = 0
         sign_value = 1
         return number_state_6()
-    elif ch == END:
+    elif ch == END or ch == ' ':
         return True, int_value 
     else:
         return sink_state()
@@ -590,7 +590,7 @@ def number_state_4():
         exp_value = 0
         sign_value = 1
         return number_state_6()
-    elif ch == END:
+    elif ch == END or ch == ' ':
         return True, int_value
     else: 
         return sink_state
@@ -656,7 +656,7 @@ def number_state_8():
     if digit(ch):
         exp_value = exp_value * 10 + sign_value * int(ch)
         return number_state_8()
-    elif ch == END:
+    elif ch == END or ch == ' ':
         return True, int_value * 10 ** exp_value
     else:
         return sink_state()
@@ -671,8 +671,8 @@ V = set(('.', 'e', 'E', '+', '-', '*', '/', '(', ')', ' ')
 
 ############
 # Question 9 : 
-#Langage hors contexte car les règles sont de la forme A -> aBc, avec A et B des 
-#symboles non terminaux et a, c des symboles terminaux
+# Langage hors contexte car les règles sont de la forme A -> aBc, avec A et B des 
+# symboles non terminaux et a, c des symboles terminaux
 # Langage régulier ? A DEMONTRER
 
 
@@ -686,10 +686,8 @@ def eval_exp():
     '''
     ch = next_char()
 
-    if number(ch)[0]:
-        return number(ch)[1]
-    
-    elif ch == '-': 
+    #cas récursifs
+    if ch == '-': 
         n1 = eval_exp()
         n2 = eval_exp()
         return n1 - n2
@@ -707,13 +705,28 @@ def eval_exp():
     elif ch == '+':
         n1 = eval_exp()
         n2 = eval_exp()
-        return n1 + n2
-    
-    else: return False
+        return n1 + n2    
+    else: 
+        return number()[1]
 
 
 ############
+# Question 11: 
+# TypeError: unsupported operand type(s) for +: 'NoneType' and 'int'
+# l'espace entre '+' et '11' est interprété comme un mot
+
+# Après ajout de "ch == ' '" dans l'automate number, le programme fonctionne
+# mais le résultat n'est pas le bon (15 pour + 12 13, ne fonctionne pas quand le
+# second terme n'a qu'un seul chiffre)
+# EXPLICATIONS: le programme ne prend pas en compte les espaces, il interpète
+# le premier 1 de 13 comme étant vide (consommé dans le else) et le second comme 
+# étant un chiffre sur le 12 cela ne pose pas de problème car il y a un espace 
+# entre + et 12
+
+############
 # Question 12 : eval_exp corrigé
+# Il faut que l'espace après un nombre ne soit pas consommé, ce qui permet à
+# eval_exp de le consommer dans le else
 
 current_char = ''
 
@@ -734,11 +747,277 @@ def consume_char():
 
 
 def number_v2():
-    print("@ATTENTION: number_v2 à finir !") # LIGNE A SUPPRIMER
+    '''
+    automate pour tous les nombres
+    qui implémente les corrections mentionnées précédemment
+    si on accepte le mot avec un espace, on ne consomme pas 
+    le caractère de fin du mot
+    '''
+    init_char()
+    global int_value
+    global exp_value
+    global sign_value
+    sign_value = 1
+    int_value = 0.
+    exp_value = 0
+    return number_state_0_v2()
+
+def number_state_0_v2():
+    '''
+    q0 Number
+    '''
+    global int_value 
+    global exp_value
+    ch = peek_char()
+    consume_char()
+    if nonzerodigit(ch):
+        int_value = int(ch)
+        return number_state_2_v2()
+    elif ch == '0':
+        int_value = 0
+        return number_state_1_v2()
+    elif ch == '.':
+        exp_value = -1
+        return number_state_3_v2()
+    else: 
+        return sink_state()
+
+def number_state_1_v2():
+    '''
+    q1 Number
+    '''
+    global int_value
+    global exp_value
+    global sign_value
+    ch = peek_char()
+    if nonzerodigit(ch):
+        int_value = int(ch)
+        consume_char()
+        return number_state_5_v2()
+    elif ch == '0':
+        consume_char()
+        return number_state_1_v2()
+    elif ch == '.':
+        exp_value = -1
+        consume_char()
+        return number_state_4_v2()
+    elif ch == 'E' or ch == 'e':
+        exp_value = 0
+        sign_value = 1
+        consume_char()
+        return number_state_6_v2()
+    elif ch == ' ':
+        return True, int_value 
+    elif ch == END: 
+        consume_char()
+        return True, int_value 
+    else: 
+        consume_char()
+        return sink_state()
+
+def number_state_2_v2(): 
+    '''
+    q2 Number
+    '''
+    global int_value 
+    global exp_value
+    global sign_value
+    ch = peek_char()
+    if digit(ch):
+        int_value = int_value * 10 +int(ch)
+        consume_char()
+        return number_state_2_v2()
+    elif ch == '.':
+        exp_value = -1
+        consume_char()
+        return number_state_4_v2()
+    elif ch == 'E' or ch == 'e':
+        exp_value = 0
+        sign_value = 1
+        consume_char()
+        return number_state_6_v2()
+    elif ch == ' ':
+        return True, int_value 
+    elif ch == END: 
+        consume_char()
+        return True, int_value 
+    else:
+        consume_char()
+        return sink_state()
+
+def number_state_3_v2():
+    '''
+    q3 Number
+    '''
+    global int_value
+    global exp_value
+    ch = peek_char()
+    consume_char()
+    if digit(ch):
+        int_value = int_value + int(ch) * 10 ** exp_value
+        exp_value -= 1
+        return number_state_4_v2()
+    else: 
+        return sink_state()
+
+def number_state_4_v2():
+    '''
+    q4 Number
+    '''
+    global int_value
+    global exp_value
+    global sign_value
+    ch = peek_char()
+    if digit(ch):
+        int_value = int_value + int(ch) * 10 ** exp_value
+        exp_value -= 1
+        consume_char()
+        return number_state_4_v2()
+    elif ch == 'E' or ch=='e':
+        exp_value = 0
+        sign_value = 1
+        consume_char()
+        return number_state_6_v2()
+    elif ch == ' ':
+        return True, int_value 
+    elif ch == END: 
+        consume_char()
+        return True, int_value 
+    else: 
+        consume_char()
+        return sink_state()
+
+def number_state_5_v2():
+    '''
+    q5 Number
+    '''
+    global int_value
+    global exp_value
+    ch = peek_char()
+    if digit(ch):
+        int_value = int_value * 10 + int(ch)
+        consume_char()
+        return number_state_5_v2()
+    elif ch == '.':
+        exp_value = -1
+        consume_char()
+        return number_state_4_v2()
+    elif ch == 'E' or ch == "e":
+        exp_value = 0
+        consume_char()
+        return number_state_6_v2()
+    else:
+        consume_char()
+        return sink_state()
+
+def number_state_6_v2():
+    '''
+    q6 Number
+    '''
+    global exp_value
+    global sign_value
+    ch = peek_char()
+    if digit(ch):
+        exp_value = int(ch)
+        consume_char()
+        return number_state_8_v2()
+    elif ch == '+':
+        sign_value = 1
+        consume_char()
+        return number_state_7_v2()
+    elif ch == '-':
+        sign_value = -1
+        consume_char()
+        return number_state_7_v2()
+    else:
+        consume_char()
+        return sink_state()
+
+def number_state_7_v2():
+    '''
+    q7 Number
+    '''
+    global exp_value
+    ch = peek_char()
+    if digit(ch):
+        exp_value = sign_value * int(ch)
+        consume_char()
+        return number_state_8_v2()
+    else:
+        consume_char()
+        return sink_state()
+
+def number_state_8_v2():
+    '''
+    q8 Number
+    '''
+    global exp_value
+    global int_value
+    global sign_value
+    ch = peek_char()
+    if digit(ch):
+        exp_value = exp_value * 10 + sign_value * int(ch)
+        consume_char()
+        return number_state_8_v2()
+    elif ch == ' ':
+        return True, int_value 
+    elif ch == END: 
+        consume_char()
+        return True, int_value * 10 ** exp_value 
+    else:
+        consume_char()
+        return sink_state()
 
 
 def eval_exp_v2():
-    print("@ATTENTION: eval_exp_v2 à finir !") # LIGNE A SUPPRIMER
+    '''
+    évaluer une expression en notation préfixe
+    '''
+    ch = peek_char()
+    #cas récursifs
+    if ch == '-': 
+        consume_char()
+        n1 = eval_exp_v2()
+        n2 = eval_exp_v2()
+        print(n1, n2)
+        return n1 - n2
+    
+    elif ch == '*':
+        consume_char()
+        n1 = eval_exp_v2()
+        n2 = eval_exp_v2()
+        print(n1, n2)
+        return n1 * n2
+    
+    elif ch == '/':
+        consume_char()
+        n1 = eval_exp_v2()
+        n2 = eval_exp_v2()
+        print(n1, n2)
+
+        return n1 / n2
+    
+    elif ch == '+':
+        consume_char()
+        n1 = eval_exp_v2()
+        n2 = eval_exp_v2()
+        print(n1, n2)
+        return n1 + n2
+
+    #cas de base: espace
+    elif ch == ' ':
+        consume_char()
+        prochain_ch = peek_char()
+        if digit(prochain_ch) or prochain_ch == '.': 
+            return number_v2()[1]
+        elif prochain_ch in operator:
+            return eval_exp_v2()
+        else: 
+            raise ValueError('Expression incorrecte')
+    
+    else: 
+        raise ValueError('Expression incorrecte')
+
 
 
 ############
@@ -771,8 +1050,8 @@ if __name__ == "__main__":
     print("@ Tapez une entrée:")
     try:
         #ok = integer() # changer ici pour tester un autre automate sans valeur
-        ok, val = number() # changer ici pour tester un autre automate avec valeur
-        # ok, val = True, eval_exp() # changer ici pour tester eval_exp et eval_exp_v2
+        # ok, val = number_v2() # changer ici pour tester un autre automate avec valeur
+        ok, val = True, eval_exp_v2() # changer ici pour tester eval_exp et eval_exp_v2
         if ok:
             print("Accepted!")
             print("value:", val) # décommenter ici pour afficher la valeur (question 4 et +)
