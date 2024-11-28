@@ -907,7 +907,7 @@ def number_state_5_v2():
         consume_char()
         return number_state_6_v2()
     else:
-        consume_char()
+        consume_char()  
         return sink_state()
 
 def number_state_6_v2():
@@ -960,7 +960,7 @@ def number_state_8_v2():
         consume_char()
         return number_state_8_v2()
     elif ch == ' ':
-        return True, int_value 
+        return True, int_value * 10 ** exp_value 
     elif ch == END: 
         consume_char()
         return True, int_value * 10 ** exp_value 
@@ -994,7 +994,6 @@ def eval_exp_v2():
         n1 = eval_exp_v2()
         n2 = eval_exp_v2()
         print(n1, n2)
-
         return n1 / n2
     
     elif ch == '+':
@@ -1012,22 +1011,263 @@ def eval_exp_v2():
             return number_v2()[1]
         elif prochain_ch in operator:
             return eval_exp_v2()
-        else: 
+        else:   
             raise ValueError('Expression incorrecte')
     
-    else: 
+    else:   
         raise ValueError('Expression incorrecte')
 
+############
+# Question 13: 
 
 
 ############
 # Question 14 : automate pour Lex
 
 operator = set(['+', '-', '*', '/'])
+op_value = ''
 
 def FA_Lex():
-    print("@ATTENTION: FA_lex à finir !") # LIGNE A SUPPRIMER
+    '''
+    Lexer reconnaissant le langage 
+    Lex = number U  operator U  {'(', ')'}
+    '''
+    init_char()
+    global int_value
+    global exp_value
+    global sign_value
+    sign_value = 1
+    int_value = 0.
+    exp_value = 0
+    return FA_Lex_state_0()
 
+def FA_Lex_state_0():
+    '''
+    q0 FA Lex
+    '''
+    global int_value 
+    global exp_value
+    global op_value
+    ch = peek_char()
+    if nonzerodigit(ch):
+        int_value = int(ch)
+        consume_char()
+        return FA_Lex_state_2()
+    elif ch == '0':
+        int_value = 0
+        consume_char()
+        return FA_Lex_state_1()
+    elif ch == '.':
+        exp_value = -1
+        consume_char()
+        return FA_Lex_state_3()
+    elif ch in operator or ch == '(' or ch == ')':
+        op_value = ch
+        consume_char()
+        return FA_Lex_state_9()
+    else: 
+        consume_char()
+        return sink_state()
+
+def FA_Lex_state_1():
+    '''
+    q1 FA Lex
+    '''
+    global int_value
+    global exp_value
+    global sign_value
+    ch = peek_char()
+    if nonzerodigit(ch):
+        int_value = int(ch)
+        consume_char()
+        return FA_Lex_state_5()
+    elif ch == '0':
+        consume_char()
+        return FA_Lex_state_1()
+    elif ch == '.':
+        exp_value = -1
+        consume_char()
+        return FA_Lex_state_4()
+    elif ch == 'E' or ch == 'e':
+        exp_value = 0
+        sign_value = 1
+        consume_char()
+        return FA_Lex_state_6()
+    elif ch == ' ':
+        return True, int_value 
+    elif ch == END: 
+        consume_char()
+        return True, int_value 
+    else: 
+        consume_char()
+        return sink_state()
+
+def FA_Lex_state_2(): 
+    '''
+    q2 FA Lex
+    '''
+    global int_value 
+    global exp_value
+    global sign_value
+    ch = peek_char()
+    if digit(ch):
+        int_value = int_value * 10 +int(ch)
+        consume_char()
+        return FA_Lex_state_2()
+    elif ch == '.':
+        exp_value = -1
+        consume_char()
+        return FA_Lex_state_4()
+    elif ch == 'E' or ch == 'e':
+        exp_value = 0
+        sign_value = 1
+        consume_char()
+        return FA_Lex_state_6()
+    elif ch == ' ':
+        return True, int_value 
+    elif ch == END: 
+        consume_char()
+        return True, int_value 
+    else:
+        consume_char()
+        return sink_state()
+
+def FA_Lex_state_3():
+    '''
+    q3 FA Lex
+    '''
+    global int_value
+    global exp_value
+    ch = peek_char()
+    consume_char()
+    if digit(ch):
+        int_value = int_value + int(ch) * 10 ** exp_value
+        exp_value -= 1
+        return FA_Lex_state_4()
+    else: 
+        return sink_state()
+
+def FA_Lex_state_4():
+    '''
+    q4 FA Lex
+    '''
+    global int_value
+    global exp_value
+    global sign_value
+    ch = peek_char()
+    if digit(ch):
+        int_value = int_value + int(ch) * 10 ** exp_value
+        exp_value -= 1
+        consume_char()
+        return FA_Lex_state_4()
+    elif ch == 'E' or ch=='e':
+        exp_value = 0
+        sign_value = 1
+        consume_char()
+        return FA_Lex_state_6()
+    elif ch == ' ':
+        return True, int_value 
+    elif ch == END: 
+        consume_char()
+        return True, int_value 
+    else: 
+        consume_char()
+        return sink_state()
+
+def FA_Lex_state_5():
+    '''
+    q5 FA Lex
+    '''
+    global int_value
+    global exp_value
+    ch = peek_char()
+    if digit(ch):
+        int_value = int_value * 10 + int(ch)
+        consume_char()
+        return FA_Lex_state_5()
+    elif ch == '.':
+        exp_value = -1
+        consume_char()
+        return FA_Lex_state_4()
+    elif ch == 'E' or ch == "e":
+        exp_value = 0
+        consume_char()
+        return FA_Lex_state_6()
+    else:
+        consume_char()  
+        return sink_state()
+
+def FA_Lex_state_6():
+    '''
+    q6 FA Lex
+    '''
+    global exp_value
+    global sign_value
+    ch = peek_char()
+    if digit(ch):
+        exp_value = int(ch)
+        consume_char()
+        return FA_Lex_state_8()
+    elif ch == '+':
+        sign_value = 1
+        consume_char()
+        return FA_Lex_state_7()
+    elif ch == '-':
+        sign_value = -1
+        consume_char()
+        return FA_Lex_state_7()
+    else:
+        consume_char()
+        return sink_state()
+
+def FA_Lex_state_7():
+    '''
+    q7 FA Lex
+    '''
+    global exp_value
+    ch = peek_char()
+    if digit(ch):
+        exp_value = sign_value * int(ch)
+        consume_char()
+        return FA_Lex_state_8()
+    else:
+        consume_char()
+        return sink_state()
+
+def FA_Lex_state_8():
+    '''
+    q8 FA Lex
+    '''
+    global exp_value
+    global int_value
+    global sign_value
+    ch = peek_char()
+    if digit(ch):
+        exp_value = exp_value * 10 + sign_value * int(ch)
+        consume_char()
+        return FA_Lex_state_8()
+    elif ch == ' ':
+        return True, int_value * 10 ** exp_value 
+    elif ch == END: 
+        consume_char()
+        return True, int_value * 10 ** exp_value 
+    else:
+        consume_char()
+        return sink_state()
+
+def FA_Lex_state_9(): 
+    '''
+    q9 FA Lex
+    '''
+    global op_value
+    ch = peek_char()
+    if ch == ' ':
+        return True, op_value
+    elif ch == END: 
+        consume_char()
+        return True, op_value
+    else: 
+        return sink_state()
 
 ############
 # Question 15 : automate pour Lex avec token
@@ -1050,8 +1290,8 @@ if __name__ == "__main__":
     print("@ Tapez une entrée:")
     try:
         #ok = integer() # changer ici pour tester un autre automate sans valeur
-        # ok, val = number_v2() # changer ici pour tester un autre automate avec valeur
-        ok, val = True, eval_exp_v2() # changer ici pour tester eval_exp et eval_exp_v2
+        ok, val = FA_Lex() # changer ici pour tester un autre automate avec valeur
+        # ok, val = True, eval_exp_v2() # changer ici pour tester eval_exp et eval_exp_v2
         if ok:
             print("Accepted!")
             print("value:", val) # décommenter ici pour afficher la valeur (question 4 et +)
