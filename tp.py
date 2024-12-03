@@ -25,6 +25,9 @@ def init_char():
 
 # Accès au caractère suivant dans l'entrée
 def next_char():
+    '''
+    récupère le prochain caractère depuis l'entrée standard
+    '''
     global INPUT_STREAM
     ch = INPUT_STREAM.read(1)
     # print("@", repr(ch))  # decommenting this line may help debugging
@@ -72,7 +75,7 @@ def integer_Q2_state_0():
     ch = next_char()
     if nonzerodigit(ch):
         return integer_Q2_state_2()
-    elif ch == '0':
+    elif digit(ch) and not(nonzerodigit(ch)):
         return integer_Q2_state_1()
     else:
         return False
@@ -155,11 +158,12 @@ def pointfloat_Q2_state_3():
 
 ############
 # Question 3 : 
-#tests ok pour integer et pointfloat sans valeur
+# Tests ok pour integer et pointfloat sans valeur
 
 ############
 # Question 4 : 
-#L'idée est de multiplier la valeur par 10 et d'ajouter la valeur du chiffre rencontré
+# L'idée est de multiplier la valeur courante par 10 et d'ajouter la valeur 
+# du chiffre rencontré
 
 
 ############
@@ -172,12 +176,18 @@ int_value = 0
 exp_value = 0
 
 def integer():
+    '''
+    automate pour les entiers
+    '''
     global int_value
     int_value = 0
     init_char()
     return integer_state_0()
 
 def integer_state_0():
+    '''
+    q0
+    '''
     global int_value
     ch = next_char()
     if nonzerodigit(ch):
@@ -191,6 +201,9 @@ def integer_state_0():
         return False, None
 
 def integer_state_1():
+    '''
+    q1
+    '''
     global int_value
     ch = next_char()
     if digit(ch) and not(nonzerodigit(ch)):
@@ -202,6 +215,9 @@ def integer_state_1():
         return False, None
 
 def integer_state_2():
+    '''
+    q2
+    '''
     global int_value
     ch = next_char()
     if digit(ch):
@@ -224,7 +240,7 @@ def pointfloat():
     global int_value
     global exp_value
     init_char()
-    int_value = 0.
+    int_value = 0
     exp_value = 0
     return pointfloat_state_0()
 
@@ -287,7 +303,10 @@ def pointfloat_state_3():
         exp_value -= 1
         return pointfloat_state_3()
     elif ch == END:
-        return True, int_value
+        #round permet d'arrondir le pointfloat à la bonne décimale
+        #en effet, les virgules flottantes ne sont parfois pas 
+        #exactement représentées en mémoire
+        return True, round(int_value, abs(exp_value))
     else:
         return False, None
 
@@ -297,8 +316,8 @@ def pointfloat_state_3():
 
 
 #EXPONENT
-#il faut tout d'abord écrire l'automate sur une feuille de papier, 
-#puis le rendre déterministe et complet, et enfin l'implémenter
+# Il faut tout d'abord écrire l'automate sur une feuille de papier, 
+# puis le rendre déterministe et complet, et enfin l'implémenter
 
     
 # La valeur du signe de l'exposant : 1 si +, -1 si -
@@ -316,6 +335,9 @@ def exponent():
     return exponent_state_0()
 
 def exponent_state_0():
+    '''
+    q0
+    '''
     ch = next_char()
     if ch == 'e' or ch == 'E':
         return exponent_state_1()
@@ -323,6 +345,9 @@ def exponent_state_0():
         return sink_state()
 
 def exponent_state_1():
+    '''
+    q1
+    '''
     global sign_value
     global exp_value
     ch = next_char()
@@ -339,6 +364,9 @@ def exponent_state_1():
         return sink_state()
 
 def exponent_state_2():
+    '''
+    q2
+    '''
     global exp_value
     global sign_value
     ch = next_char()
@@ -349,6 +377,9 @@ def exponent_state_2():
         return sink_state()
 
 def exponent_state_3():
+    '''
+    q3
+    '''
     global exp_value
     global sign_value
     ch = next_char()
@@ -384,6 +415,9 @@ def exponentfloat():
     return exponentfloat_state_0()
 
 def exponentfloat_state_0():
+    '''
+    q0
+    '''
     global int_value
     global exp_value
     ch = next_char()
@@ -397,6 +431,9 @@ def exponentfloat_state_0():
         return sink_state()
     
 def exponentfloat_state_1():
+    '''
+    q1
+    '''
     global int_value
     global exp_value
     ch = next_char()
@@ -413,6 +450,9 @@ def exponentfloat_state_1():
         return sink_state()
 
 def exponentfloat_state_2():
+    '''
+    q2
+    '''
     global int_value
     global exp_value 
     ch = next_char()
@@ -424,6 +464,9 @@ def exponentfloat_state_2():
         return sink_state()
 
 def exponentfloat_state_3():
+    '''
+    q3
+    '''
     global int_value
     global exp_value
     global sign_value
@@ -441,6 +484,9 @@ def exponentfloat_state_3():
         return sink_state()
 
 def exponentfloat_state_4():
+    '''
+    q4
+    '''
     global int_value
     global exp_value
     ch = next_char()
@@ -457,6 +503,9 @@ def exponentfloat_state_4():
         return sink_state()
 
 def exponentfloat_state_5():
+    '''
+    q5
+    '''
     global exp_value
     global sign_value
     ch = next_char()
@@ -467,6 +516,9 @@ def exponentfloat_state_5():
         return sink_state()
 
 def exponentfloat_state_6():
+    '''
+    q6
+    '''
     global exp_value
     global sign_value
     global int_value
@@ -657,6 +709,7 @@ def number_state_8():
         exp_value = exp_value * 10 + sign_value * int(ch)
         return number_state_8()
     elif ch == END or ch == ' ':
+        #question 11 pour l'espace en tant que caractère de fin
         return True, int_value * 10 ** exp_value
     else:
         return sink_state()
@@ -671,9 +724,17 @@ V = set(('.', 'e', 'E', '+', '-', '*', '/', '(', ')', ' ')
 
 ############
 # Question 9 : 
-# Langage hors contexte car les règles sont de la forme A -> aBc, avec A et B des 
-# symboles non terminaux et a, c des symboles terminaux
-# Langage régulier ? A DEMONTRER
+# Langage hors contexte car les règles sont de la forme A -> aBc, 
+# avec A et B des symboles non terminaux et a, c 
+# des symboles terminaux
+
+# On utilise le lemme de l'étoile pour prouver que ce langage n'est pas
+# régulier: Supposons le langage régulier, 
+# soit n donné par le lemme, w = + + ... + 1 1 ... 1 avec n '+' et n+1 '1'
+# soit la décomposition x, y, z donnée par le lemme, on a forcément
+# y = '+'^i avec i in entier strictement positif.
+# il suffit de choisir un k différent de 1 pour trouver que x.y^k.z 
+# n'appartient pas au langage décrit par la grammaire.
 
 
 
@@ -705,23 +766,26 @@ def eval_exp():
     elif ch == '+':
         n1 = eval_exp()
         n2 = eval_exp()
-        return n1 + n2    
+        return n1 + n2
+
     else: 
         return number()[1]
 
 
 ############
 # Question 11: 
-# TypeError: unsupported operand type(s) for +: 'NoneType' and 'int'
-# l'espace entre '+' et '11' est interprété comme un mot
 
-# Après ajout de "ch == ' '" dans l'automate number, le programme fonctionne
-# mais le résultat n'est pas le bon (15 pour + 12 13, ne fonctionne pas quand le
-# second terme n'a qu'un seul chiffre)
+# Number ne se finit pas au bon endroit car le seul caractère de fin est '\n'
+
+# Après ajout de l'espace comme fin possible d'un nombre, le programme 
+# retourne 15, alors qu'on s'attendait à 25
+
 # EXPLICATIONS: le programme ne prend pas en compte les espaces, il interpète
-# le premier 1 de 13 comme étant vide (consommé dans le else) et le second comme 
-# étant un chiffre sur le 12 cela ne pose pas de problème car il y a un espace 
-# entre + et 12
+# l'espace avant 13 comme étant un caractère vide, ce qui permet au else de
+# rediriger vers la fonction number. Cette dernière interprète l'espace après
+# 12 comme le caractère de fin. Le 1 de 12 est interprété comme étant un caractère
+# vide permetant de passer au number 2. Il faudrait ajouter un espace afin 
+# de lire 12 et non 2. 
 
 ############
 # Question 12 : eval_exp corrigé
@@ -748,9 +812,9 @@ def consume_char():
 
 def number_v2():
     '''
-    automate pour tous les nombres
+    Automate pour tous les nombres
     qui implémente les corrections mentionnées précédemment
-    si on accepte le mot avec un espace, on ne consomme pas 
+    Si on accepte le mot avec un espace, on ne consomme pas 
     le caractère de fin du mot
     '''
     init_char()
@@ -979,28 +1043,24 @@ def eval_exp_v2():
         consume_char()
         n1 = eval_exp_v2()
         n2 = eval_exp_v2()
-        print(n1, n2)
         return n1 - n2
     
     elif ch == '*':
         consume_char()
         n1 = eval_exp_v2()
         n2 = eval_exp_v2()
-        print(n1, n2)
         return n1 * n2
     
     elif ch == '/':
         consume_char()
         n1 = eval_exp_v2()
         n2 = eval_exp_v2()
-        print(n1, n2)
         return n1 / n2
     
     elif ch == '+':
         consume_char()
         n1 = eval_exp_v2()
         n2 = eval_exp_v2()
-        print(n1, n2)
         return n1 + n2
 
     #cas de base: espace
@@ -1019,7 +1079,12 @@ def eval_exp_v2():
 
 ############
 # Question 13: 
-
+# Supposons L(exp) régulier, soit n l'entier donné par le lemme de l'étoile.
+# w = ((( ... (1) ... ))), avec n parenthèses. |w| = 2n+1 et w appartient
+# évidemment à L(exp). Soit x.y.z la décomposition donnée par le lemme de 
+# l'étoile. On a forcément y = '('^i avec i un entier non nul. Il suffit de 
+# prendre k différent de 1 et on a un x.y^k.z n'appartenant pas au langage
+# (c'est une expression mal parenthésée). 
 
 ############
 # Question 14 : automate pour Lex
@@ -1537,7 +1602,7 @@ if __name__ == "__main__":
     try:
         #ok = integer() # changer ici pour tester un autre automate sans valeur
         ok, val = FA_Lex_w_token() # changer ici pour tester un autre automate avec valeur
-        # ok, val = True, eval_exp_v2() # changer ici pour tester eval_exp et eval_exp_v2
+        # ok, val = True, eval_exp_v2 () # changer ici pour tester eval_exp et eval_exp_v2
         if ok:  
             print("Accepted!")
             print("value:", val) # décommenter ici pour afficher la valeur (question 4 et +)
