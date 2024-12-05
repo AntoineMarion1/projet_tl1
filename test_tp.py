@@ -18,11 +18,12 @@ stop_on_first_error = False
 
 test_integer_Q2    = False
 test_pointfloat_Q2 = False
-test_integer       = False
-test_pointfloat    = False
-test_exponent      = True
-test_exponentfloat = True
-test_number        = True   
+test_integer       = False  
+test_pointfloat    = False  
+test_exponent      = False
+test_exponentfloat = False
+test_number        = False   
+test_number_v2     = True  
 
 # Le caractère de fin est \0, et non \n
 tp.END = ''
@@ -205,6 +206,24 @@ def exec_test_number():
     test_all("tp.number", None, 
              ["a2","0a0","1a0","1.a2","0.a0","1a.","2e+a0","1e1a0"])
 
+def exec_test_number_v2():
+    test_all("tp.number_v2", True, 
+             ["1234567890098700", "203", "0000", 
+              "0", "1","2","3","4","5","6","7","8","9",
+              "4.", "5.4", ".5", "0123.", ".123", "678.876",
+              "0.", "000.000", ".0",
+              "1e5", "1e+5", "1e-5", "1234567890098700e-1234567890098700",
+              "1234567890098700e123",
+              "203E203", "000e+125", "0e-3", "1E+4","2e0","3E0","4e6",
+              "5e-5","6e7","7e8","8E+9","9e-1", "4.e+43", "5.4E-67",
+              ".5e0", "0123.e-0", ".123E+0", "678.876E-0", "0.e+124",
+              "000.000E+12", ".0e-98500"])
+    test_all("tp.number_v2", False,
+             ["1ee5", "1e-", "2.E+", "1e", "e", "+", "-", "1e+-5", "e5", 
+              "e+5", "+1e5", "-1e5", "", "1e+"])
+    test_all("tp.number_v2", None, 
+             ["a2","0a0","1a0","1.a2","0.a0","1a.","2e+a0","1e1a0"])
+
 # Si ce fichier est lancé directement, on exécute les tests
 if __name__ == '__main__':
     if test_integer_Q2:
@@ -221,5 +240,7 @@ if __name__ == '__main__':
         exec_test_exponentfloat()
     if test_number:
         exec_test_number()
+    if test_number_v2:
+        exec_test_number_v2()
     print()
     print("@ all tests OK !")

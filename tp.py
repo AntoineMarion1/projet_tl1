@@ -254,8 +254,6 @@ def pointfloat_state_0():
         int_value = int(ch)
         return pointfloat_state_2()
     elif ch == '.':
-        # on a un une virgule (donc un zero virtuel)
-        exp_value = -1
         return pointfloat_state_1()
     else:
         return False, None
@@ -268,7 +266,7 @@ def pointfloat_state_1():
     global exp_value
     ch = next_char()
     if digit(ch):
-        int_value += int(ch) * 10 ** exp_value
+        int_value += int_value * 10 + int(ch)
         exp_value -= 1
         return pointfloat_state_3()
     else:
@@ -285,7 +283,6 @@ def pointfloat_state_2():
         int_value = int_value * 10 + int(ch)
         return pointfloat_state_2()
     elif ch == '.':
-        exp_value = -1
         return pointfloat_state_3()
     else:
         return False, None
@@ -299,14 +296,11 @@ def pointfloat_state_3():
     global exp_value
     ch = next_char()
     if digit(ch):
-        int_value += int(ch) * 10 ** exp_value
+        int_value = int_value * 10 + int(ch)
         exp_value -= 1
         return pointfloat_state_3()
     elif ch == END:
-        #round permet d'arrondir le pointfloat à la bonne décimale
-        #en effet, les virgules flottantes ne sont parfois pas 
-        #exactement représentées en mémoire
-        return True, round(int_value, abs(exp_value))
+        return True, int_value * 10** exp_value
     else:
         return False, None
 
@@ -532,6 +526,9 @@ def exponentfloat_state_6():
         return sink_state()
 
 #NUMBER
+
+exp_float_value = 0
+
 def number():
     '''
     automate pour tous les nombres
@@ -540,9 +537,11 @@ def number():
     global int_value
     global exp_value
     global sign_value
+    global exp_float_value
     sign_value = 1
     int_value = 0.
     exp_value = 0
+    exp_float_value = 0
     return number_state_0()
 
 def number_state_0():
@@ -618,10 +617,11 @@ def number_state_3():
     '''
     global int_value
     global exp_value
+    global exp_float_value
     ch = next_char()
     if digit(ch):
-        int_value = int_value + int(ch) * 10 ** exp_value
-        exp_value -= 1
+        int_value = int_value * 10 + int(ch)
+        exp_float_value -= 1
         return number_state_4()
     else: 
         return sink_state()
@@ -633,17 +633,18 @@ def number_state_4():
     global int_value
     global exp_value
     global sign_value
+    global exp_float_value
     ch = next_char()
     if digit(ch):
-        int_value = int_value + int(ch) * 10 ** exp_value
-        exp_value -= 1
+        int_value = int_value * 10 + int(ch)
+        exp_float_value -= 1
         return number_state_4()
     elif ch == 'E' or ch=='e':
         exp_value = 0
         sign_value = 1
         return number_state_6()
     elif ch == END or ch == ' ':
-        return True, int_value
+        return True, int_value * 10 ** exp_float_value
     else: 
         return sink_state
 
@@ -658,7 +659,6 @@ def number_state_5():
         int_value = int_value * 10 + int(ch)
         return number_state_5()
     elif ch == '.':
-        exp_value = -1
         return number_state_4()
     elif ch == 'E' or ch == "e":
         exp_value = 0
@@ -710,7 +710,7 @@ def number_state_8():
         return number_state_8()
     elif ch == END or ch == ' ':
         #question 11 pour l'espace en tant que caractère de fin
-        return True, int_value * 10 ** exp_value
+        return True, int_value * 10 ** (exp_value + exp_float_value)
     else:
         return sink_state()
 
@@ -730,7 +730,7 @@ V = set(('.', 'e', 'E', '+', '-', '*', '/', '(', ')', ' ')
 
 # On utilise le lemme de l'étoile pour prouver que ce langage n'est pas
 # régulier: Supposons le langage régulier, 
-# soit n donné par le lemme, w = + + ... + 1 1 ... 1 avec n '+' et n+1 '1'
+# soit n donné par le lemme, w = +.+. ... +.1.1 ... .1 avec n '+' et n+1 '1'
 # soit la décomposition x, y, z donnée par le lemme, on a forcément
 # y = '+'^i avec i in entier strictement positif.
 # il suffit de choisir un k différent de 1 pour trouver que x.y^k.z 
@@ -820,10 +820,12 @@ def number_v2():
     init_char()
     global int_value
     global exp_value
+    global exp_float_value
     global sign_value
     sign_value = 1
     int_value = 0.
     exp_value = 0
+    exp_float_value = 0
     return number_state_0_v2()
 
 def number_state_0_v2():
@@ -862,7 +864,6 @@ def number_state_1_v2():
         consume_char()
         return number_state_1_v2()
     elif ch == '.':
-        exp_value = -1
         consume_char()
         return number_state_4_v2()
     elif ch == 'E' or ch == 'e':
@@ -892,7 +893,6 @@ def number_state_2_v2():
         consume_char()
         return number_state_2_v2()
     elif ch == '.':
-        exp_value = -1
         consume_char()
         return number_state_4_v2()
     elif ch == 'E' or ch == 'e':
@@ -915,11 +915,12 @@ def number_state_3_v2():
     '''
     global int_value
     global exp_value
+    global exp_float_value
     ch = peek_char()
     consume_char()
     if digit(ch):
-        int_value = int_value + int(ch) * 10 ** exp_value
-        exp_value -= 1
+        int_value = int_value * 10 + int(ch)
+        exp_float_value -= 1
         return number_state_4_v2()
     else: 
         return sink_state()
@@ -931,10 +932,11 @@ def number_state_4_v2():
     global int_value
     global exp_value
     global sign_value
+    global exp_float_value
     ch = peek_char()
     if digit(ch):
-        int_value = int_value + int(ch) * 10 ** exp_value
-        exp_value -= 1
+        int_value = int_value * 10 + int(ch)
+        exp_float_value -= 1
         consume_char()
         return number_state_4_v2()
     elif ch == 'E' or ch=='e':
@@ -943,10 +945,10 @@ def number_state_4_v2():
         consume_char()
         return number_state_6_v2()
     elif ch == ' ':
-        return True, int_value 
+        return True, int_value * 10 ** exp_float_value
     elif ch == END: 
         consume_char()
-        return True, int_value 
+        return True, int_value * 10 ** exp_float_value
     else: 
         consume_char()
         return sink_state()
@@ -1018,16 +1020,17 @@ def number_state_8_v2():
     global exp_value
     global int_value
     global sign_value
+    global exp_float_value
     ch = peek_char()
     if digit(ch):
         exp_value = exp_value * 10 + sign_value * int(ch)
         consume_char()
         return number_state_8_v2()
     elif ch == ' ':
-        return True, int_value * 10 ** exp_value 
+        return True, int_value * 10 ** (exp_value + exp_float_value) 
     elif ch == END: 
         consume_char()
-        return True, int_value * 10 ** exp_value 
+        return True, int_value * 10 ** (exp_value + exp_float_value)
     else:
         consume_char()
         return sink_state()
@@ -1071,6 +1074,8 @@ def eval_exp_v2():
             return number_v2()[1]
         elif prochain_ch in operator:
             return eval_exp_v2()
+        elif ch == ' ':
+            return eval_exp_v2()
         else:   
             raise ValueError('Expression incorrecte')
     
@@ -1101,9 +1106,11 @@ def FA_Lex():
     global int_value
     global exp_value
     global sign_value
+    global exp_float_value
     sign_value = 1
     int_value = 0.
     exp_value = 0
+    exp_float_value = 0
     return FA_Lex_state_0()
 
 def FA_Lex_state_0():
@@ -1123,7 +1130,6 @@ def FA_Lex_state_0():
         consume_char()
         return FA_Lex_state_1()
     elif ch == '.':
-        exp_value = -1
         consume_char()
         return FA_Lex_state_3()
     elif ch in operator or ch == '(' or ch == ')':
@@ -1150,7 +1156,6 @@ def FA_Lex_state_1():
         consume_char()
         return FA_Lex_state_1()
     elif ch == '.':
-        exp_value = -1
         consume_char()
         return FA_Lex_state_4()
     elif ch == 'E' or ch == 'e':
@@ -1180,7 +1185,6 @@ def FA_Lex_state_2():
         consume_char()
         return FA_Lex_state_2()
     elif ch == '.':
-        exp_value = -1
         consume_char()
         return FA_Lex_state_4()
     elif ch == 'E' or ch == 'e':
@@ -1202,12 +1206,12 @@ def FA_Lex_state_3():
     q3 FA Lex
     '''
     global int_value
-    global exp_value
+    global exp_float_value
     ch = peek_char()
     consume_char()
     if digit(ch):
-        int_value = int_value + int(ch) * 10 ** exp_value
-        exp_value -= 1
+        int_value = int_value * 10 + int(ch)
+        exp_float_value -= 1
         return FA_Lex_state_4()
     else: 
         return sink_state()
@@ -1218,11 +1222,12 @@ def FA_Lex_state_4():
     '''
     global int_value
     global exp_value
+    global exp_float_value
     global sign_value
     ch = peek_char()
     if digit(ch):
-        int_value = int_value + int(ch) * 10 ** exp_value
-        exp_value -= 1
+        int_value = int_value * 10 + int(ch)
+        exp_float_value -= 1
         consume_char()
         return FA_Lex_state_4()
     elif ch == 'E' or ch=='e':
@@ -1231,10 +1236,10 @@ def FA_Lex_state_4():
         consume_char()
         return FA_Lex_state_6()
     elif ch == ' ':
-        return True, int_value 
+        return True, int_value * 10 ** exp_float_value 
     elif ch == END: 
         consume_char()
-        return True, int_value 
+        return True, int_value * 10 ** exp_float_value  
     else: 
         consume_char()
         return sink_state()
@@ -1304,6 +1309,7 @@ def FA_Lex_state_8():
     q8 FA Lex
     '''
     global exp_value
+    global exp_float_value
     global int_value
     global sign_value
     ch = peek_char()
@@ -1312,10 +1318,10 @@ def FA_Lex_state_8():
         consume_char()
         return FA_Lex_state_8()
     elif ch == ' ':
-        return True, int_value * 10 ** exp_value 
+        return True, int_value * 10 ** (exp_value + exp_float_value)
     elif ch == END: 
         consume_char()
-        return True, int_value * 10 ** exp_value 
+        return True, int_value * 10 ** (exp_value + exp_float_value)
     else:
         consume_char()
         return sink_state()
@@ -1352,9 +1358,11 @@ def FA_Lex_w_token():
     global int_value
     global exp_value
     global sign_value
+    global exp_float_value
     sign_value = 1
     int_value = 0.
     exp_value = 0
+    exp_float_value = 0 
     return FA_Lex_w_token_state_0()
 
 def FA_Lex_w_token_state_0():
@@ -1374,7 +1382,6 @@ def FA_Lex_w_token_state_0():
         consume_char()
         return FA_Lex_w_token_state_1()
     elif ch == '.':
-        exp_value = -1
         consume_char()
         return FA_Lex_w_token_state_3()
     elif ch in operator or ch == '(' or ch == ')':
@@ -1401,7 +1408,6 @@ def FA_Lex_w_token_state_1():
         consume_char()
         return FA_Lex_w_token_state_1()
     elif ch == '.':
-        exp_value = -1
         consume_char()
         return FA_Lex_w_token_state_4()
     elif ch == 'E' or ch == 'e':
@@ -1431,7 +1437,6 @@ def FA_Lex_w_token_state_2():
         consume_char()
         return FA_Lex_w_token_state_2()
     elif ch == '.':
-        exp_value = -1
         consume_char()
         return FA_Lex_w_token_state_4()
     elif ch == 'E' or ch == 'e':
@@ -1453,12 +1458,12 @@ def FA_Lex_w_token_state_3():
     q3 FA Lex
     '''
     global int_value
-    global exp_value
+    global exp_float_value
     ch = peek_char()
     consume_char()
     if digit(ch):
-        int_value = int_value + int(ch) * 10 ** exp_value
-        exp_value -= 1
+        int_value = int_value * 10 + int(ch)
+        exp_float_value -= 1
         return FA_Lex_w_token_state_4()
     else: 
         return sink_state()
@@ -1469,11 +1474,12 @@ def FA_Lex_w_token_state_4():
     '''
     global int_value
     global exp_value
+    global exp_float_value
     global sign_value
     ch = peek_char()
     if digit(ch):
-        int_value = int_value + int(ch) * 10 ** exp_value
-        exp_value -= 1
+        int_value = int_value * 10 + int(ch)
+        exp_float_value -= 1
         consume_char()
         return FA_Lex_w_token_state_4()
     elif ch == 'E' or ch=='e':
@@ -1482,10 +1488,10 @@ def FA_Lex_w_token_state_4():
         consume_char()
         return FA_Lex_w_token_state_6()
     elif ch == ' ':
-        return True, (NUM, int_value) 
+        return True, (NUM, int_value * 10 ** exp_float_value) 
     elif ch == END: 
         consume_char()
-        return True, (NUM, int_value) 
+        return True, (NUM, int_value * 10 ** exp_float_value) 
     else: 
         consume_char()
         return sink_state()
@@ -1557,16 +1563,17 @@ def FA_Lex_w_token_state_8():
     global exp_value
     global int_value
     global sign_value
+    global exp_float_value
     ch = peek_char()
     if digit(ch):
         exp_value = exp_value * 10 + sign_value * int(ch)
         consume_char()
         return FA_Lex_w_token_state_8()
     elif ch == ' ':
-        return True, (NUM, int_value * 10 ** exp_value) 
+        return True, (NUM, int_value * 10 ** (exp_value+exp_float_value))
     elif ch == END: 
         consume_char()
-        return True, (NUM, int_value * 10 ** exp_value) 
+        return True, (NUM, int_value * 10 ** (exp_value+exp_float_value)) 
     else:
         consume_char()
         return sink_state()
@@ -1601,8 +1608,8 @@ if __name__ == "__main__":
     print("@ Tapez une entrée:")
     try:
         #ok = integer() # changer ici pour tester un autre automate sans valeur
-        ok, val = FA_Lex_w_token() # changer ici pour tester un autre automate avec valeur
-        # ok, val = True, eval_exp_v2 () # changer ici pour tester eval_exp et eval_exp_v2
+        #ok, val = FA_Lex_w_token() # changer ici pour tester un autre automate avec valeur
+        ok, val = True, eval_exp_v2 () # changer ici pour tester eval_exp et eval_exp_v2
         if ok:  
             print("Accepted!")
             print("value:", val) # décommenter ici pour afficher la valeur (question 4 et +)
