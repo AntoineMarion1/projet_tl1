@@ -36,7 +36,7 @@ def next_char():
     raise Error('character ' + repr(ch) + ' unsupported')
 
 ############
-# Question 0: 
+# Question 0:
 # récupération des fichiers sources
 
 ############
@@ -75,7 +75,7 @@ def integer_Q2_state_0():
     ch = next_char()
     if nonzerodigit(ch):
         return integer_Q2_state_2()
-    elif digit(ch) and not(nonzerodigit(ch)):
+    elif digit(ch) and not nonzerodigit(ch):
         return integer_Q2_state_1()
     else:
         return False
@@ -85,7 +85,7 @@ def integer_Q2_state_1():
     q1
     '''
     ch = next_char()
-    if digit(ch) and not(nonzerodigit(ch)):
+    if digit(ch) and not nonzerodigit(ch):
         #on a un 0
         return integer_Q2_state_1()
     elif ch == END:
@@ -194,7 +194,7 @@ def integer_state_0():
         # on a un chiffre non nul
         int_value = int(ch)
         return integer_state_2()
-    elif digit(ch) and not(nonzerodigit(ch)):
+    elif digit(ch) and not nonzerodigit(ch):
         # on a un 0
         return integer_state_1()
     else:
@@ -206,7 +206,7 @@ def integer_state_1():
     '''
     global int_value
     ch = next_char()
-    if digit(ch) and not(nonzerodigit(ch)):
+    if digit(ch) and not nonzerodigit(ch):
         # on a un 0
         return integer_state_1()
     elif ch == END:
@@ -1018,9 +1018,6 @@ def number_state_8_v2():
     q8 Number
     '''
     global exp_value
-    global int_value
-    global sign_value
-    global exp_float_value
     ch = peek_char()
     if digit(ch):
         exp_value = exp_value * 10 + sign_value * int(ch)
@@ -1309,9 +1306,6 @@ def FA_Lex_state_8():
     q8 FA Lex
     '''
     global exp_value
-    global exp_float_value
-    global int_value
-    global sign_value
     ch = peek_char()
     if digit(ch):
         exp_value = exp_value * 10 + sign_value * int(ch)
@@ -1561,9 +1555,6 @@ def FA_Lex_w_token_state_8():
     q8 FA Lex
     '''
     global exp_value
-    global int_value
-    global sign_value
-    global exp_float_value
     ch = peek_char()
     if digit(ch):
         exp_value = exp_value * 10 + sign_value * int(ch)
